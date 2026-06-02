@@ -61,7 +61,12 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="工单类型id" align="center" prop="typeId" />
       <el-table-column label="工单类型名称" align="center" prop="typeName" />
-      <el-table-column label="工单大类：1运维工单，2运营工单" align="center" prop="type" />
+      <el-table-column label="工单大类" align="center" prop="type" >
+        <template #default="scope">
+          <el-tag v-if="Number(scope.row.type) === 1" type="primary">运维工单</el-tag>
+          <el-tag v-else-if="Number(scope.row.type) === 2" type="success">运营工单</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
@@ -87,8 +92,8 @@
         </el-form-item>
         <el-form-item label="工单类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择工单类型">
-            <el-option label="运维工单" value="运维工单" />
-            <el-option label="运营工单" value="运营工单" />
+            <el-option label="运维工单" value="1" />
+            <el-option label="运营工单" value="2" />
           </el-select>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
