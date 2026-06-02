@@ -9,10 +9,10 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="策略方案，如：80代表8折" prop="discount">
+      <el-form-item label="策略方案" prop="discount">
         <el-input
           v-model="queryParams.discount"
-          placeholder="请输入策略方案，如：80代表8折"
+          placeholder="请输入策略方案"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -69,7 +69,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="策略id" align="center" prop="policyId" />
       <el-table-column label="策略名称" align="center" prop="policyName" />
-      <el-table-column label="策略方案，如：80代表8折" align="center" prop="discount" />
+      <el-table-column label="策略方案" align="center" prop="discount" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
@@ -78,7 +78,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
