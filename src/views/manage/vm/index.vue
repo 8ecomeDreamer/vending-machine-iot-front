@@ -267,7 +267,7 @@
         </el-row>
 
         <el-row :gutter="24">
-          <el-col :span="12">
+          <el-col :span="8">
             <el-form-item label="区域" prop="regionId">
               <el-input v-model="regionName" placeholder="根据点位自动生成" disabled />
             </el-form-item>
@@ -508,10 +508,39 @@ function handleSelectionChange(selection) {
   multiple.value = !selection.length;
 }
 
+/** 生成设备编号：VM + 年月日 + 自增序号 */
+async function generateVmCode() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const dateStr = year + month + day;
+  
+  const response = await listVm({ innerCode: 'VM' + dateStr });
+  const todayVms = response.rows || [];
+  let maxNum = 0;
+  
+  todayVms.forEach(vm => {
+    const code = vm.innerCode || '';
+    if (code.startsWith('VM' + dateStr) && code.length === 14) {
+      const num = parseInt(code.slice(-3));
+      if (!isNaN(num) && num > maxNum) {
+        maxNum = num;
+      }
+    }
+  });
+
+  console.log(todayVms)
+  
+  const newNum = String(maxNum + 1).padStart(3, '0');
+  return 'VM' + dateStr + newNum;
+}
+
 /** 新增按钮操作 */
-function handleAdd() {
+async function handleAdd() {
   reset();
   form.value.runningStatus = '未激活'
+  form.value.innerCode = await generateVmCode();
   open.value = true;
   title.value = "添加设备";
 }
@@ -589,8 +618,9 @@ function getVmTypeOptions() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除设备编号为"' + _ids + '"的数据项？').then(function() {
+  const innerCode = row.innerCode;
+  proxy.$modal.confirm('是否确认删除设备编号为"' + innerCode + '"的数据项？').then(function() {
+    const _ids = row.id || ids.value;
     return delVm(_ids);
   }).then(() => {
     getList();
@@ -622,6 +652,8 @@ function handleNodeChange(nodeId) {
     form.value.regionId = node.regionId;
     regionName.value = node.nodeName;
     form.value.addr = node.address;
+    form.value.businessType = node.businessType;
+    form.value.partnerId = node.partnerId;
     // form.value.longitudes = node.longitudes;
     // form.value.latitude = node.latitude;
   } else {
@@ -630,6 +662,8 @@ function handleNodeChange(nodeId) {
     form.value.addr = "";
     form.value.longitudes = null;
     form.value.latitude = null;
+    form.value.businessType = null;
+    form.value.partnerId = null;
   }
 }
 

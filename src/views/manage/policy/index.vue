@@ -93,7 +93,7 @@
         <el-form-item label="策略名称" prop="policyName">
           <el-input v-model="form.policyName" placeholder="请输入策略名称" />
         </el-form-item>
-        <el-form-item label="策略方案，如：80代表8折" prop="discount">
+        <el-form-item label="策略方案" prop="discount">
           <el-input v-model="form.discount" placeholder="请输入策略方案，如：80代表8折" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
