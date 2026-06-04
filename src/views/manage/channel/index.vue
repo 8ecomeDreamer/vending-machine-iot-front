@@ -9,53 +9,21 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="商品id" prop="skuId">
-        <el-input
-          v-model="queryParams.skuId"
-          placeholder="请输入商品id"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+      <el-form-item label="所属设备" prop="affiliatedVm">
+         <el-select v-model="queryParams.affiliatedVm" placeholder="请选择所属设备" clearable>
+            <el-option v-for="item in vmList" :key="item.id" :label="item.innerCode" :value="item.innerCode"></el-option>
+        </el-select>
       </el-form-item>
-      <el-form-item label="售货机id" prop="vmId">
-        <el-input
-          v-model="queryParams.vmId"
-          placeholder="请输入售货机id"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+      <el-form-item label="设备类型" prop="vmTypeName">
+          <el-select v-model="queryParams.vmTypeName" placeholder="请选择设备类型" clearable>
+            <el-option v-for="item in vmTypeList" :key="item.id" :label="item.name" :value="item.name"></el-option>
+        </el-select>
       </el-form-item>
-      <el-form-item label="售货机软件编号" prop="innerCode">
-        <el-input
-          v-model="queryParams.innerCode"
-          placeholder="请输入售货机软件编号"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="货道最大容量" prop="maxCapacity">
-        <el-input
-          v-model="queryParams.maxCapacity"
-          placeholder="请输入货道最大容量"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="货道当前容量" prop="currentCapacity">
-        <el-input
-          v-model="queryParams.currentCapacity"
-          placeholder="请输入货道当前容量"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="上次补货时间" prop="lastSupplyTime">
-        <el-date-picker clearable
-          v-model="queryParams.lastSupplyTime"
-          type="date"
-          value-format="YYYY-MM-DD"
-          placeholder="请选择上次补货时间">
-        </el-date-picker>
+      <el-form-item label="是否需要补货" prop="ifReplenish" label-width="100px">
+        <el-select v-model="queryParams.ifReplenish" placeholder="是否需要补货" clearable style="width: 140px;">
+          <el-option label="是" value="1"></el-option>
+          <el-option label="否" value="0"></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -107,13 +75,20 @@
 
     <el-table v-loading="loading" :data="channelList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键id" align="center" prop="id" />
-      <el-table-column label="货道编号" align="center" prop="channelCode" />
-      <el-table-column label="商品id" align="center" prop="skuId" />
-      <el-table-column label="售货机id" align="center" prop="vmId" />
-      <el-table-column label="售货机软件编号" align="center" prop="innerCode" />
-      <el-table-column label="货道最大容量" align="center" prop="maxCapacity" />
+      <!-- <el-table-column label="主键id" align="center" prop="id" width="70" /> -->
+      <el-table-column label="货道编号" align="center" prop="channelCode" width="80" />
+      <!-- <el-table-column label="商品id" align="center" prop="skuId" /> -->
+      <!-- <el-table-column label="售货机id" align="center" prop="vmId" /> -->
+      <el-table-column label="所属设备" align="center" prop="affiliatedVm" width="140" />
+      <el-table-column label="设备类型" align="center" prop="vmTypeName" />
+      <el-table-column label="设备容量" align="center" prop="channelMaxCapacity" />
       <el-table-column label="货道当前容量" align="center" prop="currentCapacity" />
+      <el-table-column label="货道最大容量" align="center" prop="maxCapacity" />
+      <el-table-column label="是否需要补货" align="center" prop="ifReplenish" >
+        <template #default="scope">
+          <span>{{ scope.row.maxCapacity ? '是' : '否' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="上次补货时间" align="center" prop="lastSupplyTime" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.lastSupplyTime, '{y}-{m}-{d}') }}</span>
@@ -137,34 +112,50 @@
     />
 
     <!-- 添加或修改售货机货道对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="channelRef" :model="form" :rules="rules" label-width="80px">
+    <el-dialog :title="title" v-model="open" width="550px" append-to-body>
+      <el-form ref="channelRef" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="所属设备" prop="vmId">
+          <el-select
+              v-model="form.vmId"
+              placeholder="请选择所属设备"
+              clearable
+              filterable
+              @change="handleVmChange"
+          >
+            <el-option
+                v-for="item in vmList"
+                :key="item.id"
+                :label="item.innerCode"
+                :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="货道编号" prop="channelCode">
-          <el-input v-model="form.channelCode" placeholder="请输入货道编号" />
+          <el-input v-model="form.channelCode" placeholder="自动生成" disabled />
         </el-form-item>
-        <el-form-item label="商品id" prop="skuId">
-          <el-input v-model="form.skuId" placeholder="请输入商品id" />
+        <el-form-item label="设备类型" prop="vmTypeName">
+          <el-input v-model="form.vmTypeName" placeholder="根据设备自动生成" disabled />
         </el-form-item>
-        <el-form-item label="售货机id" prop="vmId">
-          <el-input v-model="form.vmId" placeholder="请输入售货机id" />
-        </el-form-item>
-        <el-form-item label="售货机软件编号" prop="innerCode">
-          <el-input v-model="form.innerCode" placeholder="请输入售货机软件编号" />
+        <el-form-item label="设备容量" prop="channelMaxCapacity">
+          <el-input v-model="form.channelMaxCapacity" placeholder="根据设备自动生成" disabled />
         </el-form-item>
         <el-form-item label="货道最大容量" prop="maxCapacity">
-          <el-input v-model="form.maxCapacity" placeholder="请输入货道最大容量" />
+          <el-input v-model="form.maxCapacity" placeholder="根据设备自动生成" disabled />
         </el-form-item>
         <el-form-item label="货道当前容量" prop="currentCapacity">
-          <el-input v-model="form.currentCapacity" placeholder="请输入货道当前容量" />
+          <el-input v-model="form.currentCapacity" placeholder="请输入货道当前容量" @change="handleCapacityChange" />
         </el-form-item>
-        <el-form-item label="上次补货时间" prop="lastSupplyTime">
+        <el-form-item label="是否需要补货" prop="ifReplenish">
+          <el-input v-model="form.ifReplenish" placeholder="根据容量自动判断" disabled />
+        </el-form-item>
+        <!-- <el-form-item label="上次补货时间" prop="lastSupplyTime">
           <el-date-picker clearable
             v-model="form.lastSupplyTime"
             type="date"
             value-format="YYYY-MM-DD"
             placeholder="请选择上次补货时间">
           </el-date-picker>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
@@ -181,10 +172,13 @@
 
 <script setup name="Channel">
 import { listChannel, getChannel, delChannel, addChannel, updateChannel } from "@/api/manage/channel";
+import { listVmType } from "@/api/manage/vmType";
+import { listVm } from "@/api/manage/vm";
 
 const { proxy } = getCurrentInstance();
 
 const channelList = ref([]);
+const vmList = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -193,6 +187,7 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const vmTypeList = ref([]);
 
 const data = reactive({
   form: {},
@@ -212,22 +207,10 @@ const data = reactive({
       { required: true, message: "货道编号不能为空", trigger: "blur" }
     ],
     vmId: [
-      { required: true, message: "售货机id不能为空", trigger: "blur" }
-    ],
-    innerCode: [
-      { required: true, message: "售货机软件编号不能为空", trigger: "blur" }
-    ],
-    maxCapacity: [
-      { required: true, message: "货道最大容量不能为空", trigger: "blur" }
+      { required: true, message: "所属设备不能为空", trigger: "blur" }
     ],
     currentCapacity: [
       { required: true, message: "货道当前容量不能为空", trigger: "blur" }
-    ],
-    createTime: [
-      { required: true, message: "创建时间不能为空", trigger: "blur" }
-    ],
-    updateTime: [
-      { required: true, message: "修改时间不能为空", trigger: "blur" }
     ],
   }
 });
@@ -258,8 +241,11 @@ function reset() {
     skuId: null,
     vmId: null,
     innerCode: null,
+    vmTypeName: null,
+    channelMaxCapacity: null,
     maxCapacity: null,
     currentCapacity: null,
+    ifReplenish: null,
     lastSupplyTime: null,
     createTime: null,
     updateTime: null,
@@ -287,6 +273,54 @@ function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.id);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
+}
+
+/** 生成货道编号 */
+function generateChannelCode(vmInnerCode) {
+  const prefix = vmInnerCode ? vmInnerCode.replace('VM', '') : '';
+  const existingCodes = channelList.value
+    .filter(c => c.channelCode && c.channelCode.startsWith(prefix))
+    .map(c => c.channelCode);
+  
+  let maxNum = 0;
+  existingCodes.forEach(code => {
+    const match = code.match(/(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1]);
+      if (!isNaN(num) && num > maxNum) {
+        maxNum = num;
+      }
+    }
+  });
+  
+  const newNum = String(maxNum + 1).padStart(2, '0');
+  return prefix + '-' + newNum;
+}
+
+/** 设备改变时自动填充设备类型、设备容量、货道最大容量 */
+function handleVmChange(vmId) {
+  const vm = vmList.value.find(item => item.id === vmId);
+  if (vm) {
+    form.value.innerCode = vm.innerCode;
+    form.value.vmTypeName = vm.vmTypeName;
+    form.value.channelMaxCapacity = vm.channelMaxCapacity;
+    form.value.maxCapacity = vm.channelMaxCapacity;
+    // 生成货道编号
+    form.value.channelCode = generateChannelCode(vm.innerCode);
+  } else {
+    form.value.innerCode = null;
+    form.value.vmTypeName = null;
+    form.value.channelMaxCapacity = null;
+    form.value.maxCapacity = null;
+    form.value.channelCode = null;
+  }
+}
+
+/** 当前容量改变时自动判断是否需要补货 */
+function handleCapacityChange() {
+  const current = parseInt(form.value.currentCapacity) || 0;
+  const max = parseInt(form.value.maxCapacity) || 0;
+  form.value.ifReplenish = current >= max ? '否' : '是';
 }
 
 /** 新增按钮操作 */
@@ -346,5 +380,21 @@ function handleExport() {
   }, `channel_${new Date().getTime()}.xlsx`)
 }
 
+/** 查询设备类型列表 */
+function getVmTypeList() {
+  listVmType(queryParams.value).then(response => {
+    vmTypeList.value = response.rows;
+  });
+}
+
+/** 查询设备列表 */
+function getVmList() {
+  listVm(queryParams.value).then(response => {
+    vmList.value = response.rows;
+  });
+}
+
 getList();
+getVmTypeList();
+getVmList();
 </script>
