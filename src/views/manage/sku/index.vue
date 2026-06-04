@@ -340,6 +340,7 @@ function getSkuClassList() {
   });
 }
 
+// todo: 还可增加批量excel导入数据功能
 getList();
 getSkuClassList();
 </script>
