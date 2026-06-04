@@ -350,6 +350,7 @@ function handleExport() {
   }, `emp_${new Date().getTime()}.xlsx`)
 }
 
+// todo: 缺少对于图片的处理
 getList();
 getAreaList();
 </script>
