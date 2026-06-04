@@ -17,7 +17,7 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="规格(净含量)" prop="unit">
+      <!-- <el-form-item label="规格(净含量)" prop="unit">
         <el-input
           v-model="queryParams.unit"
           placeholder="请输入规格(净含量)"
@@ -32,22 +32,27 @@
           clearable
           @keyup.enter="handleQuery"
         />
-      </el-form-item>
-      <el-form-item label="商品类型id" prop="classId">
+      </el-form-item> -->
+      <!-- <el-form-item label="商品类型id" prop="classId" label-width="100px">
         <el-input
           v-model="queryParams.classId"
           placeholder="请输入商品类型id"
           clearable
           @keyup.enter="handleQuery"
         />
+      </el-form-item> -->
+
+      <el-form-item label="商品类型" prop="className">
+        <el-select v-model="queryParams.className" placeholder="请选择商品类型" clearable>
+          <el-option v-for="item in skuClassList" :key="item.classId" :label="item.className" :value="item.className" />
+        </el-select>
       </el-form-item>
-      <el-form-item label="是否打折促销" prop="isDiscount">
-        <el-input
-          v-model="queryParams.isDiscount"
-          placeholder="请输入是否打折促销"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+      
+      <el-form-item label="是否打折促销" prop="isDiscount" label-width="100px">
+        <el-select v-model="queryParams.isDiscount" placeholder="请选择是否打折促销" clearable>
+          <el-option label="是" value="1" />
+          <el-option label="否" value="0" />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -99,7 +104,7 @@
 
     <el-table v-loading="loading" :data="skuList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="skuId" />
+      <el-table-column label="主键" align="center" prop="skuId" width="80"/>
       <el-table-column label="商品名称" align="center" prop="skuName" />
       <el-table-column label="商品图片" align="center" prop="skuImage" width="100">
         <template #default="scope">
@@ -109,8 +114,13 @@
       <el-table-column label="品牌" align="center" prop="brandName" />
       <el-table-column label="规格(净含量)" align="center" prop="unit" />
       <el-table-column label="商品价格，单位分" align="center" prop="price" />
-      <el-table-column label="商品类型id" align="center" prop="classId" />
-      <el-table-column label="是否打折促销" align="center" prop="isDiscount" />
+      <!-- <el-table-column label="商品类型id" align="center" prop="classId" /> -->
+      <el-table-column label="商品类型" align="center" prop="className" />
+      <el-table-column label="是否打折促销" align="center" prop="isDiscount" >
+        <template #default="scope">
+          {{ scope.row.isDiscount === '1' ? '是' : '否' }}
+        </template>
+      </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
@@ -130,7 +140,7 @@
 
     <!-- 添加或修改商品管理对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="skuRef" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="skuRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="商品名称" prop="skuName">
           <el-input v-model="form.skuName" placeholder="请输入商品名称" />
         </el-form-item>
@@ -143,14 +153,22 @@
         <el-form-item label="规格(净含量)" prop="unit">
           <el-input v-model="form.unit" placeholder="请输入规格(净含量)" />
         </el-form-item>
-        <el-form-item label="商品价格，单位分" prop="price">
+        <el-form-item label="商品价格" prop="price">
           <el-input v-model="form.price" placeholder="请输入商品价格，单位分" />
         </el-form-item>
-        <el-form-item label="商品类型id" prop="classId">
+        <!-- <el-form-item label="商品类型id" prop="classId">
           <el-input v-model="form.classId" placeholder="请输入商品类型id" />
+        </el-form-item> -->
+        <el-form-item label="商品类型" prop="classId">
+          <el-select v-model="form.classId" placeholder="请选择商品类型" clearable  @change="handleQuery">
+            <el-option v-for="item in skuClassList" :key="item.classId" :label="item.className" :value="item.classId" />
+          </el-select>
         </el-form-item>
         <el-form-item label="是否打折促销" prop="isDiscount">
-          <el-input v-model="form.isDiscount" placeholder="请输入是否打折促销" />
+          <el-radio-group v-model="form.isDiscount" @change="handleQuery">
+            <el-radio label="1">是</el-radio>
+            <el-radio label="0">否</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -168,6 +186,7 @@
 
 <script setup name="Sku">
 import { listSku, getSku, delSku, addSku, updateSku } from "@/api/manage/sku.js";
+import { listSkuClass } from "@/api/manage/skuClass.js";
 
 const { proxy } = getCurrentInstance();
 
@@ -180,6 +199,7 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const skuClassList = ref([]);
 
 const data = reactive({
   form: {},
@@ -268,6 +288,7 @@ function handleUpdate(row) {
   const _skuId = row.skuId || ids.value
   getSku(_skuId).then(response => {
     form.value = response.data;
+    form.value.isDiscount = response.data.isDiscount.toString();
     open.value = true;
     title.value = "修改商品管理";
   });
@@ -312,5 +333,13 @@ function handleExport() {
   }, `sku_${new Date().getTime()}.xlsx`)
 }
 
+/** 查询商品类型列表 */
+function getSkuClassList() {
+  listSkuClass({}).then(response => {
+    skuClassList.value = response.rows;
+  });
+}
+
 getList();
+getSkuClassList();
 </script>
