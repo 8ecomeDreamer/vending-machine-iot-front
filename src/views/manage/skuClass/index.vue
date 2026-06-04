@@ -2,21 +2,18 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="类别名称" prop="className">
-        <el-input
-          v-model="queryParams.className"
-          placeholder="请输入类别名称"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-select v-model="queryParams.className" placeholder="请选择类别" clearable  @change="handleQuery">
+          <el-option v-for="item in skuClassList" :key="item.classId" :label="item.className" :value="item.className" />
+        </el-select>
       </el-form-item>
-      <el-form-item label="上级id" prop="parentId">
+      <!-- <el-form-item label="上级id" prop="parentId">
         <el-input
           v-model="queryParams.parentId"
           placeholder="请输入上级id"
           clearable
           @keyup.enter="handleQuery"
         />
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -67,9 +64,10 @@
 
     <el-table v-loading="loading" :data="skuClassList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="classId" />
+      <el-table-column label="主键" width="55" align="center" prop="classId" />
       <el-table-column label="类别名称" align="center" prop="className" />
-      <el-table-column label="上级id" align="center" prop="parentId" />
+      <!-- <el-table-column label="上级类别" align="center" prop="parentClassName" /> -->
+      <!-- <el-table-column label="上级id" align="center" prop="parentId" /> -->
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
@@ -93,9 +91,14 @@
         <el-form-item label="类别名称" prop="className">
           <el-input v-model="form.className" placeholder="请输入类别名称" />
         </el-form-item>
-        <el-form-item label="上级id" prop="parentId">
+        <!-- <el-form-item label="上级id" prop="parentId">
           <el-input v-model="form.parentId" placeholder="请输入上级id" />
-        </el-form-item>
+        </el-form-item> -->
+        <!-- <el-form-item label="上级类别" prop="parentClassName">
+          <el-select v-model="form.parentClassName" placeholder="请选择上级类别" clearable>
+            <el-option v-for="item in skuClassList" :key="item.classId" :label="item.className" :value="item.className" />
+          </el-select>
+        </el-form-item> -->
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>

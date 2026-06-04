@@ -17,7 +17,7 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="货道行" prop="vmRow">
+      <!-- <el-form-item label="货道行" prop="vmRow">
         <el-input
           v-model="queryParams.vmRow"
           placeholder="请输入货道行"
@@ -40,7 +40,7 @@
           clearable
           @keyup.enter="handleQuery"
         />
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
