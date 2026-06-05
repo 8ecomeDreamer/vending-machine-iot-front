@@ -79,7 +79,7 @@
       <el-table-column label="货道编号" align="center" prop="channelCode" width="80" />
       <!-- <el-table-column label="商品id" align="center" prop="skuId" /> -->
       <!-- <el-table-column label="售货机id" align="center" prop="vmId" /> -->
-      <el-table-column label="所属设备" align="center" prop="affiliatedVm" width="140" />
+      <el-table-column label="所属设备" align="center" prop="vmName" width="140" />
       <el-table-column label="设备类型" align="center" prop="vmTypeName" />
       <el-table-column label="设备容量" align="center" prop="channelMaxCapacity" />
       <el-table-column label="货道当前容量" align="center" prop="currentCapacity" />
@@ -113,7 +113,7 @@
 
     <!-- 添加或修改售货机货道对话框 -->
     <el-dialog :title="title" v-model="open" width="550px" append-to-body>
-      <el-form ref="channelRef" :model="form" :rules="rules" label-width="100px">
+      <el-form ref="channelRef" :model="form" :rules="rules" label-width="110px">
         <el-form-item label="所属设备" prop="vmId">
           <el-select
               v-model="form.vmId"
@@ -131,7 +131,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="货道编号" prop="channelCode">
-          <el-input v-model="form.channelCode" placeholder="自动生成" disabled />
+          <el-input v-model="form.channelCode" placeholder="请输入货道货道编号"  />
         </el-form-item>
         <el-form-item label="设备类型" prop="vmTypeName">
           <el-input v-model="form.vmTypeName" placeholder="根据设备自动生成" disabled />
@@ -211,6 +211,9 @@ const data = reactive({
     ],
     currentCapacity: [
       { required: true, message: "货道当前容量不能为空", trigger: "blur" }
+    ],
+    maxCapacity: [
+      { required: true, message: "货道最大容量不能为空", trigger: "blur" }
     ],
   }
 });
@@ -300,13 +303,14 @@ function generateChannelCode(vmInnerCode) {
 /** 设备改变时自动填充设备类型、设备容量、货道最大容量 */
 function handleVmChange(vmId) {
   const vm = vmList.value.find(item => item.id === vmId);
+  console.log(vm);
   if (vm) {
     form.value.innerCode = vm.innerCode;
     form.value.vmTypeName = vm.vmTypeName;
     form.value.channelMaxCapacity = vm.channelMaxCapacity;
-    form.value.maxCapacity = vm.channelMaxCapacity;
+    form.value.maxCapacity = vm.maxCapacity;
     // 生成货道编号
-    form.value.channelCode = generateChannelCode(vm.innerCode);
+    // form.value.channelCode = generateChannelCode(vm.innerCode);
   } else {
     form.value.innerCode = null;
     form.value.vmTypeName = null;
@@ -345,6 +349,13 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["channelRef"].validate(valid => {
     if (valid) {
+      // 判断当前容量是否小于等于最大容量
+      const current = parseInt(form.value.currentCapacity) || 0;
+      const max = parseInt(form.value.maxCapacity) || 0;
+      if (current > max) {
+        proxy.$modal.msgError("货道当前容量不能大于最大容量");
+        return;
+      }
       if (form.value.id != null) {
         updateChannel(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
